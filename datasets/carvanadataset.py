@@ -8,9 +8,9 @@ import torchvision.transforms.functional as F
 class CarvanaDatasetTransforms(object):
 
     def __init__(self, scaled_size):
-        
+
         self.scaled_size = scaled_size
-        
+
         self.transform = T.Compose([
             T.ToTensor(),
             T.Resize(self.scaled_size)

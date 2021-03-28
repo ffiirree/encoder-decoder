@@ -14,13 +14,13 @@ What features are U networks need for image segmentation?
 
 ## with Carvana dataset
 
-Net| vanilla | reconstruction | object only reconstruction  | object border only reconstruction 
+Net / Dice | vanilla | reconstruction | object only reconstruction  | object border only reconstruction
 |--|--|--|--|--|
 | AE |
 | AE - 2 decoders |
 | AE with shortcuts |
 | AE with shortcuts - 2 decoders |
-| UNet(`baseline`) |
+| UNet(`baseline`) | |
 | UNet - 2 decoders |
 | UNet 2+ |
 | UNet 2+ - 2 decoders |
@@ -31,7 +31,7 @@ Net| vanilla | reconstruction | object only reconstruction  | object border only
 
 ## with LITS 2017 dataset
 
-Net| vanilla | reconstruction | object only reconstruction  | object border only reconstruction 
+Net| vanilla | reconstruction | object only reconstruction  | object border only reconstruction
 |--|--|--|--|--|
 | AE |
 | AE - 2 decoders |
