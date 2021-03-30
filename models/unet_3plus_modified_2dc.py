@@ -79,6 +79,9 @@ class UNet3PlusModifiedWithTwoDecoder(nn.Module):
         self.up_16 = nn.Upsample(scale_factor=16, mode='bilinear')
 
     def forward(self, x):
+        assert x.size()[2] % 16 == 0, "The 2nd dimension must be a multiple of 16! but is {}.".format(x.size()[2])
+        assert x.size()[3] % 16 == 0, "The 3rd dimension must be a multiple of 16, but is {}.".format(x.size()[3])
+
         encode_conv1 = self.encode_conv1(x)
         down1 = self.down1(encode_conv1)
 

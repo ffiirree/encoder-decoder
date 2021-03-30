@@ -50,10 +50,10 @@ class UNet(nn.Module):
         self.output = nn.Conv2d(filters[0], n_classes, kernel_size=3, padding=1)
 
     def forward(self, x):
-        assert x.size()[2] % 16 == 0, "The 2nd dimension must be a multiple of 16! but is.".format(x.size()[2])
+        assert x.size()[2] % 16 == 0, "The 2nd dimension must be a multiple of 16! but is {}.".format(x.size()[2])
         assert x.size()[3] % 16 == 0, "The 3rd dimension must be a multiple of 16, but is {}.".format(x.size()[3])
-        
-        encode_conv1 = self.encode_conv1(x) 
+
+        encode_conv1 = self.encode_conv1(x)
         down1 = self.down1(encode_conv1)
         encode_conv2 = self.encode_conv2(down1)
         down2 = self.down2(encode_conv2)
