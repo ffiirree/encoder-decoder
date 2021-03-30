@@ -15,7 +15,7 @@ What features are U networks need for image segmentation?
 ## with Carvana dataset
 
 Net / Dice | vanilla | image reconstruction | object reconstruction  | border reconstruction
-|--|--|--|--|--|
+|--|:--:|:--:|:--:|:--:|
 | AE | 97.99<br>98.02<br>98.03
 | AE - 2 decoders | - |
 | AE with shortcuts |
@@ -32,7 +32,7 @@ Net / Dice | vanilla | image reconstruction | object reconstruction  | border re
 ## with LITS 2017 dataset
 
 Net| vanilla | image reconstruction | object reconstruction  | border reconstruction
-|--|--|--|--|--|
+|--|:--:|:--:|:--:|:--:|
 | AE |
 | AE - 2 decoders |
 | AE with shortcuts |
