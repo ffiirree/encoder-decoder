@@ -1,1 +1,2 @@
 from .carvanadataset import CarvanaDataset, CarvanaDatasetTransforms
+from .carvanadataset_ex_object import CarvanaDatasetExObject, CarvanaDatasetTransformsExObject

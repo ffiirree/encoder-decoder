@@ -4,8 +4,8 @@ import torch.nn as nn
 from torch import optim
 from tqdm import tqdm
 
-from models import UNet, AutoEncoder, UNet3PlusModified
-from datasets import CarvanaDataset, CarvanaDatasetTransforms
+from models import AutoEncoderWidthTwoDecoder, UNetWithTwoDecoder, UNet3PlusModifiedWithTwoDecoder
+from datasets import CarvanaDatasetExObject, CarvanaDatasetTransformsExObject
 from metrics import dice_coeff
 from utils import tqdm_with_logging_redirect, make_logger
 from torch.utils.data import DataLoader, random_split
@@ -15,11 +15,11 @@ def validate(net, loader, device):
 
     loss = 0
     with tqdm(total=len(loader), dynamic_ncols=True, desc="validation", unit="batch", leave=False) as pbar:
-        for images, masks in loader:
+        for images, masks, _ in loader:
             images, masks = images.to(device), masks.to(device)
 
             with torch.no_grad():
-                output = net(images)
+                output, _ = net(images)
 
             output = torch.sigmoid(output)
             output = (output > 0.5).float()
@@ -30,16 +30,16 @@ def validate(net, loader, device):
     net.train()
     return loss / len(loader)
 
-def train_net(net, device, train_loader, val_loader, epochs, optimizer, criterion, clip_grad=True):
+def train_net(net, device, train_loader, val_loader, epochs, optimizer, criterion, criterion2, clip_grad=True):
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=6)
     for epoch in range(epochs):
         net.train()
         with tqdm_with_logging_redirect(total=n_train, dynamic_ncols=True, desc=f'epoch {epoch + 1}/{epochs}', unit='img', logger=logger) as pbar:
-            for index, (images, masks) in enumerate(train_loader):
-                images, masks = images.to(device), masks.to(device)
+            for index, (images, masks, objs) in enumerate(train_loader):
+                images, masks, objs = images.to(device), masks.to(device), objs.to(device)
 
-                output = net(images)
-                loss = criterion(output, masks)
+                pre_masks, reimages = net(images)
+                loss = criterion(pre_masks, masks) + criterion2(reimages, objs)
 
                 pbar.set_postfix(**{'loss (batch)': loss.item()})
 
@@ -71,16 +71,17 @@ if __name__ == '__main__':
     parser.add_argument('--clip-grad', type=bool, default=True)
 
     opt = parser.parse_args()
-    logger = make_logger(opt.model, opt.output_dir)
+    logger = make_logger(opt.model + '_re_object', opt.output_dir)
     logger.info(opt)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f'device: {device}')
 
-    dataset = CarvanaDataset(
+    dataset = CarvanaDatasetExObject(
         '~/data/datasets/carvana/train',
         '~/data/datasets/carvana/train_masks',
-        transforms=CarvanaDatasetTransforms(opt.image_size)
+        '~/data/datasets/carvana/car',
+        transforms=CarvanaDatasetTransformsExObject(opt.image_size)
     )
 
     # torch.manual_seed(0)
@@ -93,11 +94,11 @@ if __name__ == '__main__':
     val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=opt.workers, pin_memory=True, drop_last=True)
 
     if opt.model == 'ae':
-        net = AutoEncoder(3, n_classes=1)
+        net = AutoEncoderWidthTwoDecoder(3, n_classes=1, n_ex_channels=3)
     elif opt.model == 'unet':
-        net = UNet(3, n_classes=1)
+        net = UNetWithTwoDecoder(3, n_classes=1, n_ex_channels=3)
     elif opt.model == 'unet3plus':
-        net = UNet3PlusModified(3, n_classes=1)
+        net = UNet3PlusModifiedWithTwoDecoder(3, n_classes=1, n_ex_channels=3)
 
     if device == torch.device('cuda'):
         net = nn.DataParallel(net, device_ids=[0,1,2,3])
@@ -107,6 +108,7 @@ if __name__ == '__main__':
     # optimizer = optim.RMSprop(net.parameters(), lr=opt.lr, weight_decay=1e-8, momentum=0.9)
     optimizer = optim.SGD(net.parameters(), lr=opt.lr, momentum=0.9)
     criterion = nn.BCEWithLogitsLoss()
+    criterion2 = nn.BCEWithLogitsLoss()
 
     train_net(
         net=net,
@@ -116,9 +118,8 @@ if __name__ == '__main__':
         epochs=opt.epochs,
         optimizer=optimizer,
         criterion=criterion,
+        criterion2=criterion2,
         clip_grad=opt.clip_grad
     )
 
-
-    torch.save(net.state_dict(), opt.output_dir + opt.model + '.pth')
-
+    torch.save(net.state_dict(), opt.output_dir + opt.model + '_re_object.pth')
