@@ -1,4 +1,5 @@
 import torch
+import torchsummary
 import torch.nn as nn
 
 __all__ = ['UNetWithTwoDecoder']
@@ -100,12 +101,10 @@ class UNetWithTwoDecoder(nn.Module):
 
         return self.mask(decode_conv4), self.re(ex_decode_conv4)
 
-if __name__ == "__main__":
-    model = UNetWithTwoDecoder(3, 1, 3)
-
-    # print(model)
-
-    x = torch.rand([1, 3, 512, 512])
-
-    y1, y2 = model(x)
-    print(y1.shape, y2.shape)
+if __name__ == '__main__':
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = UNetWithTwoDecoder(3, 1, n_ex_channels=3)
+    if device == torch.device('cuda'):
+        model = nn.DataParallel(model, device_ids=[0,1,2,3])
+    model.to(device)
+    torchsummary.summary(model, (3, 512, 512))

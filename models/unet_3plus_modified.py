@@ -1,4 +1,5 @@
 import torch
+import torchsummary
 import torch.nn as nn
 
 __all__ = ['UNet3PlusModified']
@@ -22,7 +23,7 @@ class UNet3PlusModified(nn.Module):
     def __init__(self, n_channels, n_classes):
         super().__init__()
 
-        filters = [32, 64, 128, 256, 512, 1024]
+        filters = [64, 128, 256, 512, 1024]
 
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -95,3 +96,11 @@ class UNet3PlusModified(nn.Module):
         decode_conv4 = self.decode_conv4(torch.cat([up4, encode_conv1, self.up_16(u), self.up_8(decode_conv1), self.up_4(decode_conv2)], 1))
 
         return self.output(decode_conv4)
+
+if __name__ == '__main__':
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = UNet3PlusModified(3, 1)
+    if device == torch.device('cuda'):
+        model = nn.DataParallel(model, device_ids=[0,1,2,3])
+    model.to(device)
+    torchsummary.summary(model, (3, 512, 512))

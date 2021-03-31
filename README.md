@@ -17,7 +17,7 @@ What features are "U" / Encoder-Decoder networks needed for image segmentation?
 Net / Dice | vanilla | image reconstruction | object reconstruction  | border reconstruction
 |--|:--:|:--:|:--:|:--:|
 | AE | 97.99<br>98.02<br>98.03
-| AE - 2 decoders | - | 98.27 |
+| AE - 2 decoders | - | 98.27 | 96.45
 | AE with shortcuts |
 | AE with shortcuts - 2 decoders | - |
 | UNet(`baseline`) | 98.87 <br> 98.65 <br> 98.86|
@@ -26,8 +26,8 @@ Net / Dice | vanilla | image reconstruction | object reconstruction  | border re
 | UNet 2+ - 2 decoders | - |
 | UNet 3+ |
 | UNet 3+ - 2 decoders | - |
-| UNet 3+(modified) | 98.99<br>99.20<br>98.65<br>98.72
-| UNet 3+(modified) - 2 decoders | - | 99.11
+| UNet 3+(modified) | 
+| UNet 3+(modified) - 2 decoders | - |
 
 ## with LITS 2017 dataset
 
