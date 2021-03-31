@@ -122,4 +122,5 @@ if __name__ == '__main__':
         clip_grad=opt.clip_grad
     )
 
-    torch.save(net.state_dict(), opt.output_dir + opt.model + '_re_object.pth')
+    torch.save(net.state_dict(), f'{opt.output_dir}/{opt.model}_re_object.pth')
+    logger.info(f'Model saved!!')

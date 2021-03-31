@@ -1,8 +1,8 @@
 import os
 import time
 
-os.system("python ./train.py --model='ae'")
-time.sleep(60)
+# os.system("python ./train.py --model='ae'")
+# time.sleep(60)
 os.system("python ./train.py --model='unet'")
 time.sleep(60)
 os.system("python ./train.py --model='unet3plus'")

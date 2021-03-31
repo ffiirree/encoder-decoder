@@ -1,33 +1,33 @@
 # EncoderDecoder
 
-What features are U networks need for image segmentation?
+What features are "U" / Encoder-Decoder networks needed for image segmentation?
 
 ## EncoderDecoder Networks
 
-- [ ] AE or VAE
-- [ ] AE or VAE with shortcuts
-- [x] `baseline:` vanilla UNet
-- [x] UNet 2+ / UNet 3+
-- [x] modified UNet 3+
-- [x] UNet with two decoders / UNet with AE
-- [ ] UNet with GAN
+- [x] AutoEncoder
+- [ ] AutoEncoder with shortcuts
+- [x] AutoEncoder with two decoders
+- [x] `baseline:` UNet
+- [x] UNet with two decoders
+- [x] UNet 2+ / (modified) UNet 3+
+- [x] modified UNet 3+ with two decoders
 
 ## with Carvana dataset
 
 Net / Dice | vanilla | image reconstruction | object reconstruction  | border reconstruction
 |--|:--:|:--:|:--:|:--:|
 | AE | 97.99<br>98.02<br>98.03
-| AE - 2 decoders | - |
+| AE - 2 decoders | - | 98.27 |
 | AE with shortcuts |
 | AE with shortcuts - 2 decoders | - |
 | UNet(`baseline`) | 98.87 <br> 98.65 <br> 98.86|
-| UNet - 2 decoders | - |
+| UNet - 2 decoders | - | 98.39<br>98.95
 | UNet 2+ |
 | UNet 2+ - 2 decoders | - |
 | UNet 3+ |
 | UNet 3+ - 2 decoders | - |
-| UNet 3+(modified) | 98.99<br>99.20<br>98.65
-| UNet 3+(modified) - 2 decoders | - |
+| UNet 3+(modified) | 98.99<br>99.20<br>98.65<br>98.72
+| UNet 3+(modified) - 2 decoders | - | 99.11
 
 ## with LITS 2017 dataset
 
