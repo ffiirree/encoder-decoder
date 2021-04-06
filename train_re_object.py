@@ -1,10 +1,11 @@
 import argparse
+import time
 import torch
 import torch.nn as nn
 from torch import optim
 from tqdm import tqdm
 
-from models import AutoEncoderWidthTwoDecoder, UNetWithTwoDecoder, UNet3PlusModifiedWithTwoDecoder
+from models import AutoEncoder2Decoders, UNet2Decoders, UNet3Plus2Decoders
 from datasets import CarvanaDatasetExObject, CarvanaDatasetTransformsExObject
 from metrics import dice_coeff
 from utils import tqdm_with_logging_redirect, make_logger
@@ -30,8 +31,7 @@ def validate(net, loader, device):
     net.train()
     return loss / len(loader)
 
-def train_net(net, device, train_loader, val_loader, epochs, optimizer, criterion, criterion2, clip_grad=True):
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=6)
+def train_net(net, device, train_loader, val_loader, epochs, optimizer, criterion, criterion2, scheduler, clip_grad=True):
     for epoch in range(epochs):
         net.train()
         with tqdm_with_logging_redirect(total=n_train, dynamic_ncols=True, desc=f'epoch {epoch + 1}/{epochs}', unit='img', logger=logger) as pbar:
@@ -64,11 +64,13 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--workers', type=int, default=16)
     parser.add_argument('--batch-size', type=int, default=8)
-    parser.add_argument('--image-size', nargs='+', default=[256, 512])
+    parser.add_argument('--image-size', nargs='+', type=int, default=[256, 512])
     parser.add_argument('--lr', type=float, default=1)
     parser.add_argument('--n_val', type=int, default=512)
     parser.add_argument('--output-dir', default='logs')
     parser.add_argument('--clip-grad', type=bool, default=True)
+    parser.add_argument('--filters', nargs='+', type=int, default=[64, 128, 256, 512, 1024])
+    parser.add_argument('--patience', type=int, default=6)
 
     opt = parser.parse_args()
     logger = make_logger(opt.model + '_re_object', opt.output_dir)
@@ -94,11 +96,11 @@ if __name__ == '__main__':
     val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=opt.workers, pin_memory=True, drop_last=True)
 
     if opt.model == 'ae':
-        net = AutoEncoderWidthTwoDecoder(3, n_classes=1, n_ex_channels=3)
+        net = AutoEncoder2Decoders(3, n_classes=1, n_ex_channels=3, filters=opt.filters)
     elif opt.model == 'unet':
-        net = UNetWithTwoDecoder(3, n_classes=1, n_ex_channels=3)
+        net = UNet2Decoders(3, n_classes=1, n_ex_channels=3, filters=opt.filters)
     elif opt.model == 'unet3plus':
-        net = UNet3PlusModifiedWithTwoDecoder(3, n_classes=1, n_ex_channels=3)
+        net = UNet3Plus2Decoders(3, n_classes=1, n_ex_channels=3, filters=opt.filters)
 
     if device == torch.device('cuda'):
         net = nn.DataParallel(net, device_ids=[0,1,2,3])
@@ -109,6 +111,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(net.parameters(), lr=opt.lr, momentum=0.9)
     criterion = nn.BCEWithLogitsLoss()
     criterion2 = nn.BCEWithLogitsLoss()
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=opt.patience)
 
     train_net(
         net=net,
@@ -122,5 +125,7 @@ if __name__ == '__main__':
         clip_grad=opt.clip_grad
     )
 
-    torch.save(net.state_dict(), f'{opt.output_dir}/{opt.model}_re_object.pth')
-    logger.info(f'Model saved!!')
+    model_filename = f'{opt.output_dir}/{opt.model}_re_obj_{opt.filters[0]}_{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.pth'
+    torch.save(net.state_dict(), model_filename)
+    logger.info(f'Model saved: {model_filename}!!')
+
